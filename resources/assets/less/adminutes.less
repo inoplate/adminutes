@@ -1,0 +1,286 @@
+@import '../vendor/AdminLTE/build/less/AdminLTE.less';
+
+.navbar-nav > .user-menu > .dropdown-menu > li.user-header > img,
+.navbar-nav > .user-menu .user-image,
+.widget-user .widget-user-image > img  { 
+    background-color: #fff;
+}
+
+.media-selector {
+    > .overlay {
+        &:extend(.box>.overlay);
+        background: fade(@light-blue, 90%);
+        opacity: 0;
+        transition: all 0.4s ease-in-out;
+        -o-transition: all 0.4s ease;
+        -moz-transition: all 0.4s ease;
+        -webkit-transition: all 0.4s ease;
+        width: 90%;
+        height: 90%;
+        top: 5%;
+        bottom: 5%;
+        left: 5%;
+        right: 5%;
+
+        > .fa {
+            color: #fff;
+        }
+    }
+
+    > .img-circle {
+        border-radius: 50%;
+    }
+
+    &:hover {
+        cursor: pointer;
+        > .overlay {
+            opacity: 1;
+        }
+    }
+}
+
+/* Absolute Center Spinner */
+.loading {
+  position: absolute;
+  z-index: 999;
+  height: 2em;
+  width: 2em;
+  overflow: show;
+  margin: auto;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  right: 0;
+}
+
+/* :not(:required) hides these rules from IE9 and below */
+.loading:not(:required) {
+  /* hide "loading..." text */
+  font: 0/0 a;
+  color: transparent;
+  text-shadow: none;
+  background-color: transparent;
+  border: 0;
+}
+
+.loading:not(:required):after {
+  content: '';
+  display: block;
+  font-size: 10px;
+  width: 1em;
+  height: 1em;
+  margin-top: -0.5em;
+  -webkit-animation: spinner 1500ms infinite linear;
+  -moz-animation: spinner 1500ms infinite linear;
+  -ms-animation: spinner 1500ms infinite linear;
+  -o-animation: spinner 1500ms infinite linear;
+  animation: spinner 1500ms infinite linear;
+  border-radius: 0.5em;
+  -webkit-box-shadow: fade(@light-blue, 90%) 1.5em 0 0 0, fade(@orange, 90%) 1.1em 1.1em 0 0, fade(@light-blue, 90%) 0 1.5em 0 0, fade(@orange, 90%) -1.1em 1.1em 0 0, fade(@light-blue, 90%) -1.5em 0 0 0, fade(@orange, 90%) -1.1em -1.1em 0 0, fade(@light-blue, 90%) 0 -1.5em 0 0, fade(@orange, 90%) 1.1em -1.1em 0 0;
+  box-shadow: fade(@light-blue, 90%) 1.5em 0 0 0, fade(@orange, 90%) 1.1em 1.1em 0 0, fade(@light-blue, 90%) 0 1.5em 0 0, fade(@orange, 90%) -1.1em 1.1em 0 0, fade(@light-blue, 90%) -1.5em 0 0 0, fade(@orange, 90%) -1.1em -1.1em 0 0, fade(@light-blue, 90%) 0 -1.5em 0 0, fade(@orange, 90%) 1.1em -1.1em 0 0;
+}
+
+/* Animation */
+
+@-webkit-keyframes spinner {
+  0% {
+    -webkit-transform: rotate(0deg);
+    -moz-transform: rotate(0deg);
+    -ms-transform: rotate(0deg);
+    -o-transform: rotate(0deg);
+    transform: rotate(0deg);
+  }
+  100% {
+    -webkit-transform: rotate(360deg);
+    -moz-transform: rotate(360deg);
+    -ms-transform: rotate(360deg);
+    -o-transform: rotate(360deg);
+    transform: rotate(360deg);
+  }
+}
+@-moz-keyframes spinner {
+  0% {
+    -webkit-transform: rotate(0deg);
+    -moz-transform: rotate(0deg);
+    -ms-transform: rotate(0deg);
+    -o-transform: rotate(0deg);
+    transform: rotate(0deg);
+  }
+  100% {
+    -webkit-transform: rotate(360deg);
+    -moz-transform: rotate(360deg);
+    -ms-transform: rotate(360deg);
+    -o-transform: rotate(360deg);
+    transform: rotate(360deg);
+  }
+}
+@-o-keyframes spinner {
+  0% {
+    -webkit-transform: rotate(0deg);
+    -moz-transform: rotate(0deg);
+    -ms-transform: rotate(0deg);
+    -o-transform: rotate(0deg);
+    transform: rotate(0deg);
+  }
+  100% {
+    -webkit-transform: rotate(360deg);
+    -moz-transform: rotate(360deg);
+    -ms-transform: rotate(360deg);
+    -o-transform: rotate(360deg);
+    transform: rotate(360deg);
+  }
+}
+@keyframes spinner {
+  0% {
+    -webkit-transform: rotate(0deg);
+    -moz-transform: rotate(0deg);
+    -ms-transform: rotate(0deg);
+    -o-transform: rotate(0deg);
+    transform: rotate(0deg);
+  }
+  100% {
+    -webkit-transform: rotate(360deg);
+    -moz-transform: rotate(360deg);
+    -ms-transform: rotate(360deg);
+    -o-transform: rotate(360deg);
+    transform: rotate(360deg);
+  }
+}
+
+.box-buttons {
+    &:extend(.box-header);
+
+    padding: 0 0 10px 0;
+
+    //Add bottom border
+    &.with-border {
+        border-bottom: 1px solid @box-border-color;
+    }
+
+    .btn {
+        margin-left: 5px;
+    }
+}
+
+.has-error .select2-container--default .select2-selection--multiple {
+    &:extend(.form-group.has-error .form-control);
+}
+
+.modal-content > .overlay,
+.file-container > .overlay,
+.thumbnail .overlay,
+.thumbnail .action,
+.dataTables_wrapper > .row > div[class*="col-"] > .dataTables_processing,
+.dataTables_wrapper > .row > div[class^="col-"] > .dataTables_processing
+{
+    &:extend(.box > .overlay);
+    margin-left: 0;
+    margin-top: 0;
+    padding-top: 0;
+    padding-bottom: 0;
+}
+
+.modal-content .overlay,
+.file-container > .overlay,
+.dataTables_wrapper .dataTables_processing,
+.thumbnail .action,
+.thumbnail .description,
+.thumbnail .overlay {
+    &:extend(.box .overlay);
+}
+
+.box .overlay,
+.modal-content .overlay,
+.file-container > .overlay,
+.dataTables_wrapper {
+  .panel-default {
+    border: none;
+  }
+
+  .dataTables_processing {    
+    span {
+      position:absolute;
+      width:30px;
+      height:30px;
+      top: 50%;
+      left: 50%;
+      margin-left: -15px;
+      margin-top: -15px;
+      background: @light-blue;
+      border-radius:999px;
+
+      &:nth-child(1) {
+          animation: cross-1 1.5s infinite linear;
+      }
+
+      &:nth-child(2) {
+          animation: cross-2 1.5s infinite linear;
+      }
+    }
+  }
+}
+
+.box {
+  &.collapsed-box {
+    .box-filter {
+      display: none;
+    }
+  }
+
+  .preview {
+    position: relative;
+    padding: 10px;
+
+    img {
+      max-width: 100%;
+      margin: auto;
+    }
+  }
+}
+
+.box-filter {
+  &:extend(.box-header);
+
+  //Add bottom border
+  &.with-border {
+    border-bottom: 1px solid @box-border-color;
+  }
+
+  .select2-hidden-accessible {
+    height: 0;
+  }
+
+  .form-control {
+    box-shadow: none;
+  }
+
+  background-color: @body-bg;
+
+  .input-group {
+    .input-group-addon {
+        background-color: whitesmoke!important;
+    }
+  }
+}
+
+.ladda-button {
+  &:extend(.btn);
+
+  &[data-size=xs] {
+    padding: 5px 10px;
+    font-size: 12px;
+    line-height: 1.5;
+
+    .ladda-label {
+      font-size: 12px;
+    }
+  }
+}
+
+.dataTables_wrapper {
+  td, th{
+    form {
+      display: inline-block;
+    }
+  }
+}

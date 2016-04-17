@@ -1,0 +1,1 @@
+<div class="flash-notify" data-message="{!! $message !!}" data-type="{{ $type }}"><div>

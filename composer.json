@@ -1,0 +1,8 @@
+{
+    "name": "inoplate/adminutes",
+    "autoload": {
+        "psr-4": {
+            "Inoplate\\Adminutes\\": "src/"
+        }
+    }
+}

@@ -1,0 +1,26 @@
+{
+  "name": "Inoplate frontend template with admin-lte",
+  "dependencies": {
+    "AdminLTE": "admin-lte#~2.3.2",
+    "datatables.net-bs": "~1.10.10",
+    "datatables-autofill-bootstrap": "datatables.net-autofill-bs#~2.1.0",
+    "datatables.net-buttons-bs": "~1.1.0",
+    "datatables.net-colreorder-bs": "~1.3.0",
+    "datatables-colvis": "~1.1.2",
+    "datatables.net-fixedcolumns-bs": "~3.2.0",
+    "datatables.net-fixedheader-bs": "~3.1.0",
+    "datatables.net-keytable-bs": "~2.1.0",
+    "datatables.net-responsive-bs": "~2.0.0",
+    "datatables.net-rowreorder-bs": "~1.1.0",
+    "datatables.net-scroller-bs": "~1.4.0",
+    "datatables.net-select-bs": "~1.1.0",
+    "font-awesome": "fontawesome#~4.5.0",
+    "jquery-validation": "~1.14.0",
+    "Ionicons": "ionicons#~2.0.1",
+    "remarkable-bootstrap-notify": "~3.1.3",
+    "sweetalert": "~1.1.3",
+    "moment": "~2.11.2",
+    "moment-timezone": "~0.5.0",
+    "ladda": "~1.0.0"
+  }
+}
