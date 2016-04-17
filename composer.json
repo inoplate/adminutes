@@ -1,8 +1,15 @@
 {
     "name": "inoplate/adminutes",
+    "description": "The larave adminLTE wrapper",
+    "keywords": ["laravel", "adminLTE", "inoplate", "admin template"],
+    "type": "composer",
+    "license": "MIT",
     "autoload": {
         "psr-4": {
             "Inoplate\\Adminutes\\": "src/"
         }
+    },
+    "config": {
+        "preferred-install": "dist"
     }
 }
