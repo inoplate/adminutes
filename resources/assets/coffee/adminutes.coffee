@@ -8,7 +8,7 @@ $ ':checkbox, :radio'
         radioClass: 'iradio_square-blue'
         increaseArea: '20%'
 
-$ "select"
+$ "select:not('.not-select2')"
     .select2()
 
 moment.locale 

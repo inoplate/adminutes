@@ -25,6 +25,7 @@ elixir(function(mix) {
         'public/vendor');
 
     mix.copy('resources/assets/vendor/sweetalert/dist', 'public/vendor/sweetalert');
+    mix.copy('resources/assets/vendor/PACE', 'public/vendor/pace');
 
     mix.copy('resources/assets/vendor/ladda/dist', 'public/vendor/ladda');
 

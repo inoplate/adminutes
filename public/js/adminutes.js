@@ -7,7 +7,7 @@
     increaseArea: '20%'
   });
 
-  $("select").select2();
+  $("select:not('.not-select2')").select2();
 
   moment.locale;
 

@@ -6,6 +6,16 @@
     background-color: #fff;
 }
 
+.widget-user {
+  .widget-user-image{
+    top: 75px;
+    > img  { 
+      height: 90px;
+    } 
+  }
+}
+
+
 .media-selector {
     > .overlay {
         &:extend(.box>.overlay);
@@ -78,6 +88,13 @@
   border-radius: 0.5em;
   -webkit-box-shadow: fade(@light-blue, 90%) 1.5em 0 0 0, fade(@orange, 90%) 1.1em 1.1em 0 0, fade(@light-blue, 90%) 0 1.5em 0 0, fade(@orange, 90%) -1.1em 1.1em 0 0, fade(@light-blue, 90%) -1.5em 0 0 0, fade(@orange, 90%) -1.1em -1.1em 0 0, fade(@light-blue, 90%) 0 -1.5em 0 0, fade(@orange, 90%) 1.1em -1.1em 0 0;
   box-shadow: fade(@light-blue, 90%) 1.5em 0 0 0, fade(@orange, 90%) 1.1em 1.1em 0 0, fade(@light-blue, 90%) 0 1.5em 0 0, fade(@orange, 90%) -1.1em 1.1em 0 0, fade(@light-blue, 90%) -1.5em 0 0 0, fade(@orange, 90%) -1.1em -1.1em 0 0, fade(@light-blue, 90%) 0 -1.5em 0 0, fade(@orange, 90%) 1.1em -1.1em 0 0;
+}
+
+.loader {
+  background: url('../img/loader.gif') no-repeat;
+  background-size: 30px 30px;
+  background-position: center;
+  height: 30px;
 }
 
 /* Animation */
@@ -283,4 +300,13 @@
       display: inline-block;
     }
   }
+}
+
+.table-striped>tbody>tr.group {
+  &:nth-of-type(odd){
+    background-color: @body-bg;
+    font-weight: bold;
+  }
+  background-color: @body-bg;
+  font-weight: bold; 
 }
