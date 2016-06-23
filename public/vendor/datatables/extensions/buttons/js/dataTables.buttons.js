@@ -1,36 +1,11 @@
-/*! Buttons for DataTables 1.1.1
+/*! Buttons for DataTables 1.0.3
  * ©2015 SpryMedia Ltd - datatables.net/license
  */
+(function(window, document, undefined) {
 
-(function( factory ){
-	if ( typeof define === 'function' && define.amd ) {
-		// AMD
-		define( ['jquery', 'datatables.net'], function ( $ ) {
-			return factory( $, window, document );
-		} );
-	}
-	else if ( typeof exports === 'object' ) {
-		// CommonJS
-		module.exports = function (root, $) {
-			if ( ! root ) {
-				root = window;
-			}
 
-			if ( ! $ || ! $.fn.dataTable ) {
-				$ = require('datatables.net')(root, $).$;
-			}
-
-			return factory( $, root, root.document );
-		};
-	}
-	else {
-		// Browser
-		factory( jQuery, window, document );
-	}
-}(function( $, window, document, undefined ) {
-'use strict';
-var DataTable = $.fn.dataTable;
-
+var factory = function( $, DataTable ) {
+"use strict";
 
 // Used for namespacing events added to the document by each instance, so they
 // can be removed on destroy
@@ -111,21 +86,17 @@ $.extend( Buttons.prototype, {
 	},
 
 	/**
-	 * Add an active class to the button to make to look active or get current
-	 * active state.
+	 * Add an active class to the button to make to look active
 	 * @param  {int|string} Button index
-	 * @param  {boolean} [flag] Enable / disable flag
-	 * @return {Buttons} Self for chaining or boolean for getter
+	 * @param  {boolean} [flag=true] Enable / disable flag
+	 * @return {Buttons} Self for chaining
 	 */
 	active: function ( idx, flag ) {
 		var button = this._indexToButton( idx );
-		var klass = this.c.dom.button.active;
-
-		if ( flag === undefined ) {
-			return button.node.hasClass( klass );
-		}
-
-		button.node.toggleClass( klass, flag === undefined ? true : flag );
+		button.node.toggleClass(
+			this.c.dom.button.active,
+			flag === undefined ? true : flag
+		);
 
 		return this;
 	},
@@ -338,10 +309,7 @@ $.extend( Buttons.prototype, {
 	text: function ( idx, label )
 	{
 		var button = this._indexToButton( idx );
-		var buttonLiner = this.c.dom.collection.buttonLiner;
-		var linerTag = typeof idx === 'string' && idx.indexOf( '-' ) !== -1 && buttonLiner && buttonLiner.tag ?
-			buttonLiner.tag :
-			this.c.dom.buttonLiner.tag;
+		var linerTag = this.c.dom.buttonLiner.tag;
 		var dt = this.s.dt;
 		var text = function ( opt ) {
 			return typeof opt === 'function' ?
@@ -467,7 +435,6 @@ $.extend( Buttons.prototype, {
 	_buildButtons: function ( buttons, container, collectionCounter )
 	{
 		var dt = this.s.dt;
-		var buttonCounter = 0;
 
 		if ( ! container ) {
 			container = this.dom.container;
@@ -522,7 +489,7 @@ $.extend( Buttons.prototype, {
 				conf._collection = $('<'+collectionDom.tag+'/>')
 					.addClass( collectionDom.className );
 
-				this._buildButtons( conf.buttons, conf._collection, buttonCounter );
+				this._buildButtons( conf.buttons, conf._collection, i );
 			}
 
 			// init call is made here, rather than buildButton as it needs to
@@ -530,8 +497,6 @@ $.extend( Buttons.prototype, {
 			if ( conf.init ) {
 				conf.init.call( dt.button( buttonNode ), dt, buttonNode, conf );
 			}
-
-			buttonCounter++;
 		}
 	},
 
@@ -609,17 +574,13 @@ $.extend( Buttons.prototype, {
 			button.addClass( config.className );
 		}
 
-		if ( config.titleAttr ) {
-			button.attr( 'title', config.titleAttr );
-		}
-
 		if ( ! config.namespace ) {
 			config.namespace = '.dt-button-'+(_buttonCounter++);
 		}
 
 		var buttonContainer = this.c.dom.buttonContainer;
 		var inserter;
-		if ( buttonContainer && buttonContainer.tag ) {
+		if ( buttonContainer ) {
 			inserter = $('<'+buttonContainer.tag+'/>')
 				.addClass( buttonContainer.className )
 				.append( button );
@@ -749,10 +710,6 @@ $.extend( Buttons.prototype, {
 			// array of button configurations (which will be iterated
 			// separately)
 			while ( ! $.isPlainObject(base) && ! $.isArray(base) ) {
-				if ( base === undefined ) {
-					return;
-				}
-
 				if ( typeof base === 'function' ) {
 					base = base( dt, conf );
 
@@ -785,19 +742,9 @@ $.extend( Buttons.prototype, {
 		while ( conf && conf.extend ) {
 			// Use `toConfObject` in case the button definition being extended
 			// is itself a string or a function
-			if ( ! _dtButtons[ conf.extend ] ) {
-				throw 'Cannot extend unknown button type: '+conf.extend;
-			}
-
 			var objArray = toConfObject( _dtButtons[ conf.extend ] );
 			if ( $.isArray( objArray ) ) {
 				return objArray;
-			}
-			else if ( ! objArray ) {
-				// This is a little brutal as it might be possible to have a
-				// valid button without the extend, but if there is no extend
-				// then the host button would be acting in an undefined state
-				return false;
 			}
 
 			// Stash the current class name
@@ -962,7 +909,7 @@ Buttons.buttonSelector = function ( insts, selector )
 			if ( v !== null ) {
 				buttons.push( {
 					node: v.node[0],
-					name: v.conf.name
+					name: v.name
 				} );
 			}
 		} );
@@ -972,7 +919,7 @@ Buttons.buttonSelector = function ( insts, selector )
 				if ( w !== null ) {
 					buttons.push( {
 						node: w.node[0],
-						name: w.conf.name
+						name: w.name
 					} );
 				}
 			} );
@@ -1105,7 +1052,7 @@ Buttons.defaults = {
  * @type {string}
  * @static
  */
-Buttons.version = '1.1.1';
+Buttons.version = '1.0.3';
 
 
 $.extend( _dtButtons, {
@@ -1119,13 +1066,6 @@ $.extend( _dtButtons, {
 			var host = button;
 			var hostOffset = host.offset();
 			var tableContainer = $( dt.table().container() );
-			var multiLevel = false;
-
-			// Remove any old collection
-			if ( $('div.dt-button-background').length ) {
-				multiLevel = $('div.dt-button-collection').offset();
-				$(document).trigger( 'click.dtb-collection' );
-			}
 
 			config._collection
 				.addClass( config.collectionLayout )
@@ -1133,15 +1073,7 @@ $.extend( _dtButtons, {
 				.appendTo( 'body' )
 				.fadeIn( config.fade );
 
-			var position = config._collection.css( 'position' );
-
-			if ( multiLevel && position === 'absolute' ) {
-				config._collection.css( {
-					top: multiLevel.top + 5, // magic numbers for a little offset
-					left: multiLevel.left + 5
-				} );
-			}
-			else if ( position === 'absolute' ) {
+			if ( config._collection.css( 'position' ) === 'absolute' ) {
 				config._collection.css( {
 					top: hostOffset.top + host.outerHeight(),
 					left: hostOffset.left
@@ -1170,23 +1102,16 @@ $.extend( _dtButtons, {
 			// Need to break the 'thread' for the collection button being
 			// activated by a click - it would also trigger this event
 			setTimeout( function () {
-				// This is bonkers, but if we don't have a click listener on the
-				// background element, iOS Safari will ignore the body click
-				// listener below. An empty function here is all that is
-				// required to make it work...
-				$('div.dt-button-background').on( 'click.dtb-collection', function () {} );
-
-				$('body').on( 'click.dtb-collection', function (e) {
+				$(document).on( 'click.dtb-collection', function (e) {
 					if ( ! $(e.target).parents().andSelf().filter( config._collection ).length ) {
 						config._collection
 							.fadeOut( config.fade, function () {
 								config._collection.detach();
 							} );
 
-						$('div.dt-button-background').off( 'click.dtb-collection' );
 						Buttons.background( false, config.backgroundClassName, config.fade );
 
-						$('body').off( 'click.dtb-collection' );
+						$(document).off( 'click.dtb-collection' );
 					}
 				} );
 			}, 10 );
@@ -1197,11 +1122,17 @@ $.extend( _dtButtons, {
 		fade: 400
 	},
 	copy: function ( dt, conf ) {
-		if ( _dtButtons.copyHtml5 ) {
+		if ( conf.preferHtml && _dtButtons.copyHtml5 ) {
 			return 'copyHtml5';
 		}
+
+		// Common option that will use the HTML5 or Flash export buttons
+		// For copy, the Flash option gets priority since it is one click only
 		if ( _dtButtons.copyFlash && _dtButtons.copyFlash.available( dt, conf ) ) {
 			return 'copyFlash';
+		}
+		if ( _dtButtons.copyHtml5 ) {
+			return 'copyHtml5';
 		}
 	},
 	csv: function ( dt, conf ) {
@@ -1230,53 +1161,6 @@ $.extend( _dtButtons, {
 		if ( _dtButtons.pdfFlash && _dtButtons.pdfFlash.available( dt, conf ) ) {
 			return 'pdfFlash';
 		}
-	},
-	pageLength: function ( dt, conf ) {
-		var lengthMenu = dt.settings()[0].aLengthMenu;
-		var vals = $.isArray( lengthMenu[0] ) ? lengthMenu[0] : lengthMenu;
-		var lang = $.isArray( lengthMenu[0] ) ? lengthMenu[1] : lengthMenu;
-		var text = function ( dt ) {
-			return dt.i18n( 'buttons.pageLength', {
-				"-1": 'Show all rows',
-				_:    'Show %d rows'
-			}, dt.page.len() );
-		};
-
-		return {
-			extend: 'collection',
-			text: text,
-			className: 'buttons-page-length',
-			buttons: $.map( vals, function ( val, i ) {
-				return {
-					text: lang[i],
-					action: function ( e, dt, button, conf ) {
-						dt.page.len( val ).draw();
-						$('div.dt-button-background').click();
-					},
-					init: function ( dt, node, conf ) {
-						var that = this;
-						var fn = function () {
-							that.active( dt.page.len() === val );
-						};
-
-						dt.on( 'length.dt'+conf.namespace, fn );
-						fn();
-					},
-					destroy: function ( dt, node, conf ) {
-						dt.off( 'length.dt'+conf.namespace );
-					}
-				};
-			} ),
-			init: function ( dt, node, conf ) {
-				var that = this;
-				dt.on( 'length.dt'+conf.namespace, function () {
-					that.text( text( dt ) );
-				} );
-			},
-			destroy: function ( dt, node, conf ) {
-				dt.off( 'length.dt'+conf.namespace );
-			}
-		};
 	}
 } );
 
@@ -1319,13 +1203,7 @@ DataTable.Api.register( 'button()', function ( group, selector ) {
 } );
 
 // Active buttons
-DataTable.Api.registerPlural( 'buttons().active()', 'button().active()', function ( flag ) {
-	if ( flag === undefined ) {
-		return this.map( function ( set ) {
-			 return set.inst.active( set.idx );
-		} );
-	}
-
+DataTable.Api.register( ['buttons().active()', 'button().active()'], function ( flag ) {
 	return this.each( function ( set ) {
 		set.inst.active( set.idx, flag );
 	} );
@@ -1483,33 +1361,19 @@ DataTable.Api.register( 'buttons.exportData()', function ( options ) {
 	}
 } );
 
-
-var _exportTextarea = $('<textarea/>')[0];
 var _exportData = function ( dt, inOpts )
 {
 	var config = $.extend( true, {}, {
-		rows:           null,
-		columns:        '',
-		modifier:       {
+		rows:          null,
+		columns:       '',
+		modifier:      {
 			search: 'applied',
 			order:  'applied'
 		},
-		orthogonal:     'display',
-		stripHtml:      true,
-		stripNewlines:  true,
-		decodeEntities: true,
-		trim:           true,
-		format:         {
-			header: function ( d ) {
-				return strip( d );
-			},
-			footer: function ( d ) {
-				return strip( d );
-			},
-			body: function ( d ) {
-				return strip( d );
-			}
-		}
+		orthogonal:    'display',
+		stripHtml:     true,
+		stripNewlines: true,
+		trim:          true
 	}, inOpts );
 
 	var strip = function ( str ) {
@@ -1529,33 +1393,28 @@ var _exportData = function ( dt, inOpts )
 			str = str.replace( /\n/g, ' ' );
 		}
 
-		if ( config.decodeEntities ) {
-			_exportTextarea.innerHTML = str;
-			str = _exportTextarea.value;
-		}
-
 		return str;
 	};
 
-
 	var header = dt.columns( config.columns ).indexes().map( function (idx, i) {
-		return config.format.header( dt.column( idx ).header().innerHTML, idx );
+		return strip( dt.column( idx ).header().innerHTML );
 	} ).toArray();
 
 	var footer = dt.table().footer() ?
 		dt.columns( config.columns ).indexes().map( function (idx, i) {
 			var el = dt.column( idx ).footer();
-			return config.format.footer( el ? el.innerHTML : '', idx );
+			return el ?
+				strip( el.innerHTML ) :
+				'';
 		} ).toArray() :
 		null;
 
-	var rowIndexes = dt.rows( config.rows, config.modifier ).indexes().toArray();
 	var cells = dt
-		.cells( rowIndexes, config.columns )
+		.cells( config.rows, config.columns, config.modifier )
 		.render( config.orthogonal )
 		.toArray();
 	var columns = header.length;
-	var rows = columns > 0 ? cells.length / columns : 0;
+	var rows = cells.length / columns;
 	var body = new Array( rows );
 	var cellCounter = 0;
 
@@ -1563,7 +1422,7 @@ var _exportData = function ( dt, inOpts )
 		var row = new Array( columns );
 
 		for ( var j=0 ; j<columns ; j++ ) {
-			row[j] = config.format.body( cells[ cellCounter ], j, i );
+			row[j] = strip( cells[ cellCounter ] );
 			cellCounter++;
 		}
 
@@ -1591,9 +1450,8 @@ $.fn.DataTable.Buttons = Buttons;
 // DataTables creation - check if the buttons have been defined for this table,
 // they will have been if the `B` option was used in `dom`, otherwise we should
 // create the buttons instance here so they can be inserted into the document
-// using the API. Listen for `init` for compatibility with pre 1.10.10, but to
-// be removed in future.
-$(document).on( 'init.dt plugin-init.dt', function (e, settings, json) {
+// using the API
+$(document).on( 'init.dt.dtb', function (e, settings, json) {
 	if ( e.namespace !== 'dt' ) {
 		return;
 	}
@@ -1609,7 +1467,7 @@ $(document).on( 'init.dt plugin-init.dt', function (e, settings, json) {
 DataTable.ext.feature.push( {
 	fnInit: function( settings ) {
 		var api = new DataTable.Api( settings );
-		var opts = api.init().buttons || DataTable.defaults.buttons;
+		var opts = api.init().buttons;
 
 		return new Buttons( api, opts ).container();
 	},
@@ -1618,4 +1476,22 @@ DataTable.ext.feature.push( {
 
 
 return Buttons;
-}));
+}; // /factory
+
+
+// Define as an AMD module if possible
+if ( typeof define === 'function' && define.amd ) {
+	define( ['jquery', 'datatables'], factory );
+}
+else if ( typeof exports === 'object' ) {
+    // Node/CommonJS
+    factory( require('jquery'), require('datatables') );
+}
+else if ( jQuery && !jQuery.fn.dataTable.Buttons ) {
+	// Otherwise simply initialise as normal, stopping multiple evaluation
+	factory( jQuery, jQuery.fn.dataTable );
+}
+
+
+})(window, document);
+
