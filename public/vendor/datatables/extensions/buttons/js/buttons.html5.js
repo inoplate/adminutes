@@ -6,38 +6,8 @@
  * Copyright © 2015 Eli Grey - http://eligrey.com
  */
 
-(function( factory ){
-	if ( typeof define === 'function' && define.amd ) {
-		// AMD
-		define( ['jquery', 'datatables.net', 'datatables.net-buttons'], function ( $ ) {
-			return factory( $, window, document );
-		} );
-	}
-	else if ( typeof exports === 'object' ) {
-		// CommonJS
-		module.exports = function (root, $) {
-			if ( ! root ) {
-				root = window;
-			}
-
-			if ( ! $ || ! $.fn.dataTable ) {
-				$ = require('datatables.net')(root, $).$;
-			}
-
-			if ( ! $.fn.dataTable.Buttons ) {
-				require('datatables.net-buttons')(root, $);
-			}
-
-			return factory( $, root, root.document );
-		};
-	}
-	else {
-		// Browser
-		factory( jQuery, window, document );
-	}
-}(function( $, window, document, undefined ) {
-'use strict';
-var DataTable = $.fn.dataTable;
+(function($, DataTable) {
+"use strict";
 
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
@@ -277,65 +247,24 @@ var _saveAs = (function(view) {
  */
 
 /**
- * Get the file name for an exported file.
+ * Get the title / file name for an exported file.
  *
  * @param {object}  config       Button configuration
  * @param {boolean} incExtension Include the file name extension
  */
 var _filename = function ( config, incExtension )
 {
-	// Backwards compatibility
-	var filename = config.filename === '*' && config.title !== '*' && config.title !== undefined ?
-		config.title :
-		config.filename;
+	var title = config.title;
 
-	if ( typeof filename === 'function' ) {
-		filename = filename();
-	}
-
-	if ( filename.indexOf( '*' ) !== -1 ) {
-		filename = filename.replace( '*', $('title').text() );
+	if ( title.indexOf( '*' ) !== -1 ) {
+		title = title.replace( '*', $('title').text() );
 	}
 
 	// Strip characters which the OS will object to
-	filename = filename.replace(/[^a-zA-Z0-9_\u00A1-\uFFFF\.,\-_ !\(\)]/g, "");
+	title = title.replace(/[^a-zA-Z0-9_\u00A1-\uFFFF\.,\-_ !\(\)]/g, "");
 
 	return incExtension === undefined || incExtension === true ?
-		filename+config.extension :
-		filename;
-};
-
-/**
- * Get the sheet name for Excel exports.
- *
- * @param {object}  config       Button configuration
- */
-var _sheetname = function ( config )
-{
-	var sheetName = 'Sheet1';
-
-	if ( config.sheetName ) {
-		sheetName = config.sheetName.replace(/[\[\]\*\/\\\?\:]/g, '');
-	}
-
-	return sheetName;	
-};
-
-/**
- * Get the title for an exported file.
- *
- * @param {object}  config  Button configuration
- */
-var _title = function ( config )
-{
-	var title = config.title;
-
-	if ( typeof title === 'function' ) {
-		title = title();
-	}
-
-	return title.indexOf( '*' ) !== -1 ?
-		title.replace( '*', $('title').text() ) :
+		title+config.extension :
 		title;
 };
 
@@ -366,14 +295,10 @@ var _exportData = function ( dt, config )
 {
 	var newLine = _newLine( config );
 	var data = dt.buttons.exportData( config.exportOptions );
-	var boundary = config.fieldBoundary;
-	var separator = config.fieldSeparator;
-	var reBoundary = new RegExp( boundary, 'g' );
-	var escapeChar = config.escapeChar !== undefined ?
-		config.escapeChar :
-		'\\';
 	var join = function ( a ) {
 		var s = '';
+		var boundary = config.fieldBoundary;
+		var separator = config.fieldSeparator;
 
 		// If there is a field boundary, then we might need to escape it in
 		// the source data
@@ -383,7 +308,7 @@ var _exportData = function ( dt, config )
 			}
 
 			s += boundary ?
-				boundary + ('' + a[i]).replace( reBoundary, escapeChar+boundary ) + boundary :
+				boundary + a[i].replace( boundary, '\\'+boundary ) + boundary :
 				a[i];
 		}
 
@@ -391,7 +316,7 @@ var _exportData = function ( dt, config )
 	};
 
 	var header = config.header ? join( data.header )+newLine : '';
-	var footer = config.footer && data.footer ? newLine+join( data.footer ) : '';
+	var footer = config.footer ? newLine+join( data.footer ) : '';
 	var body = [];
 
 	for ( var i=0, ien=data.body.length ; i<ien ; i++ ) {
@@ -448,7 +373,7 @@ var excelStrings = {
 		<workbookView xWindow="0" yWindow="0" windowWidth="25600" windowHeight="19020" tabRatio="500"/>\
 	</bookViews>\
 	<sheets>\
-		<sheet name="__SHEET_NAME__" sheetId="1" r:id="rId1"/>\
+		<sheet name="Sheet1" sheetId="1" r:id="rId1"/>\
 	</sheets>\
 </workbook>',
 
@@ -477,63 +402,34 @@ DataTable.ext.buttons.copyHtml5 = {
 	},
 
 	action: function ( e, dt, button, config ) {
-		var exportData = _exportData( dt, config );
-		var output = exportData.str;
-		var hiddenDiv = $('<div/>')
-			.css( {
-				height: 1,
-				width: 1,
-				overflow: 'hidden',
-				position: 'fixed',
-				top: 0,
-				left: 0
-			} );
-
-		if ( config.customize ) {
-			output = config.customize( output, config );
-		}
-
-		var textarea = $('<textarea readonly/>')
-			.val( output )
-			.appendTo( hiddenDiv );
-
-		// For browsers that support the copy execCommand, try to use it
-		if ( document.queryCommandSupported('copy') ) {
-			hiddenDiv.appendTo( 'body' );
-			textarea[0].focus();
-			textarea[0].select();
-
-			try {
-				document.execCommand( 'copy' );
-				hiddenDiv.remove();
-
-				dt.buttons.info(
-					dt.i18n( 'buttons.copyTitle', 'Copy to clipboard' ),
-					dt.i18n( 'buttons.copySuccess', {
-							1: "Copied one row to clipboard",
-							_: "Copied %d rows to clipboard"
-						}, exportData.rows ),
-					2000
-				);
-
-				return;
-			}
-			catch (t) {}
-		}
-
-		// Otherwise we show the text box and instruct the user to use it
+		// This button is slightly sneaky as there is no HTML API to copy text
+		// to a clipboard, so what it does is use the buttons information
+		// element with an also completely hidden textarea that contains the
+		// data to be copied. That is pre-selected so the user just needs to
+		// activate their system clipboard.
+		var newLine = _newLine( config );
+		var output = _exportData( dt, config ).str;
 		var message = $('<span>'+dt.i18n( 'buttons.copyKeys',
 				'Press <i>ctrl</i> or <i>\u2318</i> + <i>C</i> to copy the table data<br>to your system clipboard.<br><br>'+
 				'To cancel, click this message or press escape.' )+'</span>'
 			)
-			.append( hiddenDiv );
+			.append( $('<div/>')
+				.css( {
+					height: 1,
+					width: 1,
+					overflow: 'hidden'
+				} )
+				.append(
+					$('<textarea readonly/>').val( output )
+				)
+		);
 
 		dt.buttons.info( dt.i18n( 'buttons.copyTitle', 'Copy to clipboard' ), message, 0 );
 
 		// Select the text so when the user activates their system clipboard
 		// it will copy that text
-		textarea[0].focus();
-		textarea[0].select();
+		message.find('textarea')[0].focus();
+		message.find('textarea')[0].select();
 
 		// Event to hide the message when the user is done
 		var container = $(message).closest('.dt-button-info');
@@ -584,32 +480,14 @@ DataTable.ext.buttons.csvHtml5 = {
 		// Set the text
 		var newLine = _newLine( config );
 		var output = _exportData( dt, config ).str;
-		var charset = config.charset;
-
-		if ( config.customize ) {
-			output = config.customize( output, config );
-		}
-
-		if ( charset !== false ) {
-			if ( ! charset ) {
-				charset = document.characterSet || document.charset;
-			}
-
-			if ( charset ) {
-				charset = ';charset='+charset;
-			}
-		}
-		else {
-			charset = '';
-		}
 
 		_saveAs(
-			new Blob( [output], {type: 'text/csv'+charset} ),
+			new Blob( [output], {type : 'text/csv'} ),
 			_filename( config )
 		);
 	},
 
-	filename: '*',
+	title: '*',
 
 	extension: '.csv',
 
@@ -618,10 +496,6 @@ DataTable.ext.buttons.csvHtml5 = {
 	fieldSeparator: ',',
 
 	fieldBoundary: '"',
-
-	escapeChar: '"',
-
-	charset: null,
 
 	header: true,
 
@@ -650,23 +524,11 @@ DataTable.ext.buttons.excelHtml5 = {
 			var cells = [];
 
 			for ( var i=0, ien=row.length ; i<ien ; i++ ) {
-				if ( row[i] === null || row[i] === undefined ) {
-					row[i] = '';
-				}
-
-				// Don't match numbers with leading zeros or a negative anywhere
-				// but the start
-				cells.push( typeof row[i] === 'number' || (row[i].match && $.trim(row[i]).match(/^-?\d+(\.\d+)?$/) && row[i].charAt(0) !== '0') ?
+				cells.push( $.isNumeric( row[i] ) ?
 					'<c t="n"><v>'+row[i]+'</v></c>' :
-					'<c t="inlineStr"><is><t>'+(
-						! row[i].replace ?
-							row[i] :
-							row[i]
-								.replace(/&(?!amp;)/g, '&amp;')
-								.replace(/</g, '&lt;')
-								.replace(/>/g, '&gt;')
-								.replace(/[\x00-\x09\x0B\x0C\x0E-\x1F\x7F-\x9F]/g, ''))+ // remove control characters
-					'</t></is></c>'                                                      // they are not valid in XML
+					'<c t="inlineStr"><is><t>'+
+						row[i].replace(/&(?!amp;)/g, '&amp;')+
+					'</t></is></c>'
 				);
 			}
 
@@ -693,17 +555,17 @@ DataTable.ext.buttons.excelHtml5 = {
 
 		zip.file(           '[Content_Types].xml', excelStrings['[Content_Types].xml'] );
 		_rels.file(         '.rels',               excelStrings['_rels/.rels'] );
-		xl.file(            'workbook.xml',        excelStrings['xl/workbook.xml'].replace( '__SHEET_NAME__', _sheetname( config ) ) );
+		xl.file(            'workbook.xml',        excelStrings['xl/workbook.xml'] );
 		xl_rels.file(       'workbook.xml.rels',   excelStrings['xl/_rels/workbook.xml.rels'] );
 		xl_worksheets.file( 'sheet1.xml',          excelStrings['xl/worksheets/sheet1.xml'].replace( '__DATA__', xml ) );
 
 		_saveAs(
-			zip.generate( {type:"blob", mimeType:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'} ),
+			zip.generate( {type:"blob"} ),
 			_filename( config )
 		);
 	},
 
-	filename: '*',
+	title: '*',
 
 	extension: '.xlsx',
 
@@ -736,7 +598,7 @@ DataTable.ext.buttons.pdfHtml5 = {
 		if ( config.header ) {
 			rows.push( $.map( data.header, function ( d ) {
 				return {
-					text: typeof d === 'string' ? d : d+'',
+					text: d,
 					style: 'tableHeader'
 				};
 			} ) );
@@ -745,7 +607,7 @@ DataTable.ext.buttons.pdfHtml5 = {
 		for ( var i=0, ien=data.body.length ; i<ien ; i++ ) {
 			rows.push( $.map( data.body[i], function ( d ) {
 				return {
-					text: typeof d === 'string' ? d : d+'',
+					text: d,
 					style: i % 2 ? 'tableBodyEven' : 'tableBodyOdd'
 				};
 			} ) );
@@ -754,7 +616,7 @@ DataTable.ext.buttons.pdfHtml5 = {
 		if ( config.footer ) {
 			rows.push( $.map( data.footer, function ( d ) {
 				return {
-					text: typeof d === 'string' ? d : d+'',
+					text: d,
 					style: 'tableFooter'
 				};
 			} ) );
@@ -811,14 +673,14 @@ DataTable.ext.buttons.pdfHtml5 = {
 
 		if ( config.title ) {
 			doc.content.unshift( {
-				text: _title( config, false ),
+				text: _filename( config, false ),
 				style: 'title',
 				margin: [ 0, 0, 0, 12 ]
 			} );
 		}
 
 		if ( config.customize ) {
-			config.customize( doc, config );
+			config.customize( doc );
 		}
 
 		var pdf = window.pdfMake.createPdf( doc );
@@ -836,8 +698,6 @@ DataTable.ext.buttons.pdfHtml5 = {
 	},
 
 	title: '*',
-
-	filename: '*',
 
 	extension: '.pdf',
 
@@ -859,5 +719,4 @@ DataTable.ext.buttons.pdfHtml5 = {
 };
 
 
-return DataTable.Buttons;
-}));
+})(jQuery, jQuery.fn.dataTable);

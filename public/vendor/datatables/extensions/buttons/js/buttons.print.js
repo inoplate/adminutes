@@ -3,38 +3,8 @@
  * 2015 SpryMedia Ltd - datatables.net/license
  */
 
-(function( factory ){
-	if ( typeof define === 'function' && define.amd ) {
-		// AMD
-		define( ['jquery', 'datatables.net', 'datatables.net-buttons'], function ( $ ) {
-			return factory( $, window, document );
-		} );
-	}
-	else if ( typeof exports === 'object' ) {
-		// CommonJS
-		module.exports = function (root, $) {
-			if ( ! root ) {
-				root = window;
-			}
-
-			if ( ! $ || ! $.fn.dataTable ) {
-				$ = require('datatables.net')(root, $).$;
-			}
-
-			if ( ! $.fn.dataTable.Buttons ) {
-				require('datatables.net-buttons')(root, $);
-			}
-
-			return factory( $, root, root.document );
-		};
-	}
-	else {
-		// Browser
-		factory( jQuery, window, document );
-	}
-}(function( $, window, document, undefined ) {
-'use strict';
-var DataTable = $.fn.dataTable;
+(function($, DataTable) {
+"use strict";
 
 
 var _link = document.createElement( 'a' );
@@ -100,20 +70,12 @@ DataTable.ext.buttons.print = {
 		html += '</tbody>';
 
 		if ( config.footer ) {
-			html += '<tfoot>'+ addRow( data.footer, 'th' ) +'</tfoot>';
+			html += '<thead>'+ addRow( data.footer, 'th' ) +'</thead>';
 		}
 
 		// Open a new window for the printable table
 		var win = window.open( '', '' );
-		var title = config.title;
-
-		if ( typeof title === 'function' ) {
-			title = title();
-		}
-
-		if ( title.indexOf( '*' ) !== -1 ) {
-			title= title.replace( '*', $('title').text() );
-		}
+		var title = config.title.replace( '*', $('title').text() );
 
 		win.document.close();
 
@@ -163,5 +125,4 @@ DataTable.ext.buttons.print = {
 };
 
 
-return DataTable.Buttons;
-}));
+})(jQuery, jQuery.fn.dataTable);

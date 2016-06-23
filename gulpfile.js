@@ -1,4 +1,7 @@
+var gulp = require("gulp");
 var elixir = require('laravel-elixir');
+var shell = require('gulp-shell');
+var task = elixir.Task;
 
 /*
  |--------------------------------------------------------------------------
@@ -11,11 +14,13 @@ var elixir = require('laravel-elixir');
  |
  */
 
-elixir(function(mix) {
+elixir.extend('publishAssets', function() {
+    new task('publishAssets', function() {
+        return gulp.src("").pipe(shell("cd ../../../ && php artisan vendor:publish --provider=\"Inoplate\\Adminutes\\AdminutesServiceProvider\" --tag=public --force"));
+    }).watch("resources/assets/**");
+});
 
-    mix.less('adminutes.less')
-       .less(['skins/_all-skins.less'], 'public/css/skins/_all-skins.css')
-       .coffee('adminutes.coffee');
+elixir(function(mix) {
 
     mix.copy('resources/assets/vendor/AdminLTE/dist/js/app.js', 'public/js/adminlte.js');
     mix.copy('resources/assets/vendor/AdminLTE/dist/js/app.min.js', 'public/js/adminlte.min.js');
@@ -79,4 +84,9 @@ elixir(function(mix) {
 
     mix.copy(['resources/assets/vendor/datatables.net-select/js', 'resources/assets/vendor/datatables.net-select-bs/js'], 'public/vendor/datatables/extensions/select/js');
     mix.copy('resources/assets/vendor/datatables.net-select-bs/css', 'public/vendor/datatables/extensions/select/css');
+
+    mix.less('adminutes.less')
+       .less(['skins/_all-skins.less'], 'public/css/skins/_all-skins.css')
+       .coffee('adminutes.coffee')
+       .publishAssets();
 });

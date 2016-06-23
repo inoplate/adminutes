@@ -6,38 +6,8 @@
  * Copyright (c) 2012 Joseph Huckaby
  */
 
-(function( factory ){
-	if ( typeof define === 'function' && define.amd ) {
-		// AMD
-		define( ['jquery', 'datatables.net', 'datatables.net-buttons'], function ( $ ) {
-			return factory( $, window, document );
-		} );
-	}
-	else if ( typeof exports === 'object' ) {
-		// CommonJS
-		module.exports = function (root, $) {
-			if ( ! root ) {
-				root = window;
-			}
-
-			if ( ! $ || ! $.fn.dataTable ) {
-				$ = require('datatables.net')(root, $).$;
-			}
-
-			if ( ! $.fn.dataTable.Buttons ) {
-				require('datatables.net-buttons')(root, $);
-			}
-
-			return factory( $, root, root.document );
-		};
-	}
-	else {
-		// Browser
-		factory( jQuery, window, document );
-	}
-}(function( $, window, document, undefined ) {
-'use strict';
-var DataTable = $.fn.dataTable;
+(function($, DataTable) {
+"use strict";
 
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
@@ -151,7 +121,6 @@ ZeroClipboard_TableTools.Client.prototype = {
 	cssEffects: true, // enable CSS mouse effects on dom container
 	handlers: null, // user event handlers
 	sized: false,
-	sheetName: '', // default sheet name for excel export
 
 	glue: function(elem, title) {
 		// glue to DOM element
@@ -304,14 +273,6 @@ ZeroClipboard_TableTools.Client.prototype = {
 		this.fileName = newText;
 		if (this.ready) {
 			this.movie.setFileName(newText);
-		}
-	},
-
-	setSheetName: function(newText) {
-		// set sheet name, for excel
-		this.sheetName = newText;
-		if (this.ready) {
-			this.movie.setSheetName(newText);
 		}
 	},
 
@@ -489,65 +450,24 @@ var _glue = function ( flash, node )
 };
 
 /**
- * Get the file name for an exported file.
+ * Get the title / file name for an exported file.
  *
  * @param {object}  config       Button configuration
  * @param {boolean} incExtension Include the file name extension
  */
 var _filename = function ( config, incExtension )
 {
-	// Backwards compatibility
-	var filename = config.filename === '*' && config.title !== '*' && config.title !== undefined ?
-		config.title :
-		config.filename;
+	var title = config.title;
 
-	if ( typeof filename === 'function' ) {
-		filename = filename();
-	}
-
-	if ( filename.indexOf( '*' ) !== -1 ) {
-		filename = filename.replace( '*', $('title').text() );
+	if ( title.indexOf( '*' ) !== -1 ) {
+		title = title.replace( '*', $('title').text() );
 	}
 
 	// Strip characters which the OS will object to
-	filename = filename.replace(/[^a-zA-Z0-9_\u00A1-\uFFFF\.,\-_ !\(\)]/g, "");
+	title = title.replace(/[^a-zA-Z0-9_\u00A1-\uFFFF\.,\-_ !\(\)]/g, "");
 
 	return incExtension === undefined || incExtension === true ?
-		filename+config.extension :
-		filename;
-};
-
-/**
- * Get the sheet name for Excel exports.
- *
- * @param {object}  config       Button configuration
- */
-var _sheetname = function ( config )
-{
-	var sheetName = 'Sheet1';
-
-	if ( config.sheetName ) {
-		sheetName = config.sheetName.replace(/[\[\]\*\/\\\?\:]/g, '');
-	}
-
-	return sheetName;	
-};
-
-/**
- * Get the title for an exported file.
- *
- * @param {object}  config  Button configuration
- */
-var _title = function ( config )
-{
-	var title = config.title;
-
-	if ( typeof title === 'function' ) {
-		title = title();
-	}
-
-	return title.indexOf( '*' ) !== -1 ?
-		title.replace( '*', $('title').text() ) :
+		title+config.extension :
 		title;
 };
 
@@ -599,14 +519,10 @@ var _exportData = function ( dt, config )
 {
 	var newLine = _newLine( config );
 	var data = dt.buttons.exportData( config.exportOptions );
-	var boundary = config.fieldBoundary;
-	var separator = config.fieldSeparator;
-	var reBoundary = new RegExp( boundary, 'g' );
-	var escapeChar = config.escapeChar !== undefined ?
-		config.escapeChar :
-		'\\';
 	var join = function ( a ) {
 		var s = '';
+		var boundary = config.fieldBoundary;
+		var separator = config.fieldSeparator;
 
 		// If there is a field boundary, then we might need to escape it in
 		// the source data
@@ -616,7 +532,7 @@ var _exportData = function ( dt, config )
 			}
 
 			s += boundary ?
-				boundary + ('' + a[i]).replace( reBoundary, escapeChar+boundary ) + boundary :
+				boundary + a[i].replace( boundary, '\\'+boundary ) + boundary :
 				a[i];
 		}
 
@@ -624,7 +540,7 @@ var _exportData = function ( dt, config )
 	};
 
 	var header = config.header ? join( data.header )+newLine : '';
-	var footer = config.footer && data.footer ? newLine+join( data.footer ) : '';
+	var footer = config.footer ? newLine+join( data.footer ) : '';
 	var body = [];
 
 	for ( var i=0, ien=data.body.length ; i<ien ; i++ ) {
@@ -673,8 +589,6 @@ var flashButton = {
 
 	title: '*',
 
-	filename: '*',
-
 	extension: '.csv',
 
 	header: true,
@@ -721,12 +635,9 @@ DataTable.ext.buttons.copyFlash = $.extend( {}, flashButton, {
 
 		var flash = config._flash;
 		var data = _exportData( dt, config );
-		var output = config.customize ?
-			config.customize( data.str, config ) :
-			data.str;
 
 		flash.setAction( 'copy' );
-		_setText( flash, output ); 
+		_setText( flash, data.str ); 
 
 		dt.buttons.info(
 			dt.i18n( 'buttons.copyTitle', 'Copy to clipboard' ),
@@ -755,16 +666,11 @@ DataTable.ext.buttons.csvFlash = $.extend( {}, flashButton, {
 		// Set the text
 		var flash = config._flash;
 		var data = _exportData( dt, config );
-		var output = config.customize ?
-			config.customize( data.str, config ) :
-			data.str;
 
 		flash.setAction( 'csv' );
 		flash.setFileName( _filename( config ) );
-		_setText( flash, output );
-	},
-
-	escapeChar: '"'
+		_setText( flash, data.str );
+	}
 } );
 
 // Excel save file - this is really a CSV file using UTF-8 that Excel can read
@@ -784,21 +690,11 @@ DataTable.ext.buttons.excelFlash = $.extend( {}, flashButton, {
 			var cells = [];
 
 			for ( var i=0, ien=row.length ; i<ien ; i++ ) {
-				if ( row[i] === null || row[i] === undefined ) {
-					row[i] = '';
-				}
-
-				cells.push( typeof row[i] === 'number' || (row[i].match && $.trim(row[i]).match(/^-?\d+(\.\d+)?$/) && row[i].charAt(0) !== '0') ?
+				cells.push( $.isNumeric( row[i] ) ?
 					'<c t="n"><v>'+row[i]+'</v></c>' :
-					'<c t="inlineStr"><is><t>'+(
-						! row[i].replace ?
-							row[i] :
-							row[i]
-								.replace(/&(?!amp;)/g, '&amp;')
-								.replace(/</g, '&lt;')
-								.replace(/>/g, '&gt;')
-								.replace(/[\x00-\x1F\x7F-\x9F]/g, ''))+ // remove control characters
-					'</t></is></c>'                                    // they are not valid in XML
+					'<c t="inlineStr"><is><t>'+
+						row[i].replace(/&(?!amp;)/g, '&amp;')+
+					'</t></is></c>'
 				);
 			}
 
@@ -819,9 +715,7 @@ DataTable.ext.buttons.excelFlash = $.extend( {}, flashButton, {
 
 		flash.setAction( 'excel' );
 		flash.setFileName( _filename( config ) );
-		flash.setSheetName( _sheetname( config ) );
 		_setText( flash, xml );
-		
 	},
 
 	extension: '.xlsx'
@@ -847,7 +741,7 @@ DataTable.ext.buttons.pdfFlash = $.extend( {}, flashButton, {
 		} );
 
 		flash.setAction( 'pdf' );
-		flash.setFileName( _title( config ) );
+		flash.setFileName( _filename( config ) );
 
 		_setText( flash, JSON.stringify( {
 			title:       _filename(config, false),
@@ -873,5 +767,4 @@ DataTable.ext.buttons.pdfFlash = $.extend( {}, flashButton, {
 } );
 
 
-return DataTable.Buttons;
-}));
+})(jQuery, jQuery.fn.dataTable);
