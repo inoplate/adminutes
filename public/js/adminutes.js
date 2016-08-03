@@ -194,7 +194,11 @@
     return $('button[data-loading-text]', this).button('reset');
   });
 
-  $(document).on('ajax.form.success', 'form.ajax', function(evt, data, textStatus, jqXHR) {
+  $(document).on('ajax.form.success', "form.ajax:not('.no-reset')", function(evt, data, textStatus, jqXHR) {
+    return $(this)[0].reset();
+  });
+
+  $(document).on('ajax.form.success', "form.ajax", function(evt, data, textStatus, jqXHR) {
     return $.notify({
       message: data.message
     }, {
@@ -203,6 +207,10 @@
         align: 'center'
       }
     });
+  });
+
+  $(document).on('ajax.form.success', '.modal form.ajax', function(evt, data, textStatus, jqXHR) {
+    return $(this).parents('.modal').modal('hide');
   });
 
   $(document).on('ifToggled', ':checkbox', function() {

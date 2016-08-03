@@ -1609,6 +1609,7 @@ a:focus {
 .box > .loading-img,
 .overlay-wrapper > .loading-img,
 .media-selector > .overlay,
+section.content > .overlay,
 .modal-content > .overlay,
 .file-container > .overlay,
 .thumbnail .overlay,
@@ -1623,6 +1624,7 @@ a:focus {
 }
 .box .overlay,
 .overlay-wrapper .overlay,
+section.content > .overlay,
 .modal-content .overlay,
 .file-container > .overlay,
 .dataTables_wrapper .dataTables_processing,
@@ -5567,6 +5569,7 @@ fieldset[disabled] .btn-yahoo.active {
 .box-buttons .btn {
   margin-left: 5px;
 }
+section.content > .overlay,
 .modal-content > .overlay,
 .file-container > .overlay,
 .thumbnail .overlay,
