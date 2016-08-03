@@ -222,13 +222,24 @@ $ document
             .button 'reset'
 
 $ document
-    .on 'ajax.form.success', 'form.ajax', (evt, data, textStatus, jqXHR) ->
+    .on 'ajax.form.success', "form.ajax:not('.no-reset')", (evt, data, textStatus, jqXHR) ->
+        $(this)[0]
+            .reset()
+
+$ document
+    .on 'ajax.form.success', "form.ajax", (evt, data, textStatus, jqXHR) ->
         $.notify
                 message: data.message
             ,
                 type: 'success'
                 placement:
                     align: 'center'
+
+$ document
+    .on 'ajax.form.success', '.modal form.ajax', (evt, data, textStatus, jqXHR) ->
+        $ this
+            .parents '.modal'
+            .modal 'hide'
 
 
 $ document
